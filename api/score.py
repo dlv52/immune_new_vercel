@@ -1,8 +1,7 @@
 from http.server import BaseHTTPRequestHandler
 import json
-import numpy as np
+import math
 import urllib.request
-import os
 
 SUPABASE_URL = "https://bkshfiqinlinsttvtzxh.supabase.co"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrc2hmaXFpbmxpbnN0dHZ0enhoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzI5Nzc4OCwiZXhwIjoyMDkyODczNzg4fQ.jKUcnRDFbcVIlVOf6d9jqsVNI-ve-wBDEp-bjMKfbak"
@@ -38,7 +37,7 @@ def score(skin_temp, hrv, eda):
     hrv_score  = max(0, (45 - hrv) / 20)
     eda_score  = max(0, (eda - 7) / 5)
     raw = (temp_score + hrv_score * 1.5 + eda_score) / 3.5
-    prob = 1 / (1 + np.exp(-5 * (raw - 0.4)))
+    prob = 1 / (1 + math.exp(-5 * (raw - 0.4)))
     return float(prob)
 
 class handler(BaseHTTPRequestHandler):
