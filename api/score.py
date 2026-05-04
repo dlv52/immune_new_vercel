@@ -32,13 +32,21 @@ def supabase_post(table, data):
     except urllib.error.HTTPError as e:
         return e.code
 
-def score(skin_temp, hrv, eda):
-    temp_score = max(0, (skin_temp - 36.8) / 0.8)
-    hrv_score  = max(0, (45 - hrv) / 20)
-    eda_score  = max(0, (eda - 7) / 5)
-    raw = (temp_score + hrv_score * 1.5 + eda_score) / 3.5
-    prob = 1 / (1 + math.exp(-5 * (raw - 0.4)))
-    return float(prob)
+def score(skin_temp, hrv, eda, hr):
+    # Baselines for a healthy fit 23 year old male
+    temp_base = 36.4
+    hrv_base  = 56.0
+    eda_base  = 4.7
+    hr_base   = 68.0
+
+    # Deviations — amplified to make changes visible
+    temp_dev = max(0, (skin_temp - temp_base) / 0.3) * 15
+    hrv_dev  = max(0, (hrv_base - hrv) / 8.0) * 20
+    eda_dev  = max(0, (eda - eda_base) / 0.8) * 20
+    hr_dev   = max(0, (hr - hr_base) / 6.0) * 15
+
+    raw_score = 12 + temp_dev + hrv_dev + eda_dev + hr_dev
+    return min(49, round(raw_score, 1))
 
 class handler(BaseHTTPRequestHandler):
     def do_POST(self):
@@ -62,14 +70,14 @@ class handler(BaseHTTPRequestHandler):
         skin_temp = row.get("skin_temp_c")
         hrv       = row.get("hrv_ms")
         eda       = row.get("eda_microsiemens")
+        hr        = row.get("heart_rate_bpm")
 
-        if skin_temp is None or hrv is None or eda is None:
+        if skin_temp is None or hrv is None or eda is None or hr is None:
             self._respond(200, {"skipped": "incomplete_features"})
             return
 
-        prob = score(float(skin_temp), float(hrv), float(eda))
-        immune_score = round(prob * 100, 1)
-        risk_label   = 1 if prob >= 0.5 else 0
+        immune_score = score(float(skin_temp), float(hrv), float(eda), float(hr))
+        risk_label   = 1 if immune_score >= 50 else 0
 
         status = supabase_post("inferences", {
             "window_id":    window_id,
