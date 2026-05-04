@@ -34,17 +34,17 @@ def supabase_post(table, data):
 
 def score(skin_temp, hrv, eda, hr):
     temp_base = 36.4
-    hrv_base  = 56.0
-    eda_base  = 4.7
-    hr_base   = 68.0
+    hrv_base  = 65.0
+    eda_base  = 4.0
+    hr_base   = 65.0
 
-    temp_dev = max(0, (skin_temp - temp_base) / 0.5) * 8
-    hrv_dev  = max(0, (hrv_base - hrv) / 10.0) * 10
-    eda_dev  = max(0, (eda - eda_base) / 1.0) * 8
-    hr_dev   = max(0, (hr - hr_base) / 8.0) * 8
+    temp_dev = max(0, (skin_temp - temp_base) / 0.7) * 5
+    hrv_dev  = max(0, (hrv_base - hrv) / 20.0) * 8
+    eda_dev  = max(0, (eda - eda_base) / 8.0) * 8
+    hr_dev   = max(0, (hr - hr_base) / 35.0) * 8
 
     raw_score = 12 + temp_dev + hrv_dev + eda_dev + hr_dev
-    return min(35, round(raw_score, 1))
+    return min(28, round(raw_score, 1))
 
 class handler(BaseHTTPRequestHandler):
     def do_POST(self):
